@@ -160,25 +160,25 @@ export function StudentsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {rows.map((s) => (
-              <tr key={s.id} className="hover:bg-paper">
+            {rows.map((student) => (
+              <tr key={student.id} className="hover:bg-paper">
                 <td className="px-4 py-3">
-                  <div className="font-medium">{s.fullName}</div>
+                  <div className="font-medium">{student.fullName}</div>
                   <div className="text-ink/50 text-xs font-mono">
-                    {s.studentId}
+                    {student.studentId}
                   </div>
                 </td>
-                <td className="px-4 py-3">{s.programme.name}</td>
+                <td className="px-4 py-3">{student.programme.name}</td>
                 <td className="px-4 py-3">
-                  <StatusBadge status={s.status} />
+                  <StatusBadge status={student.status} />
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`font-mono ${s.balance > 0 ? 'text-rust' : 'text-ink/50'}`}
+                    className={`font-mono ${student.balance > 0 ? 'text-rust' : 'text-ink/50'}`}
                   >
-                    ${s.balance.toFixed(2)}
+                    £{student.balance.toFixed(2)}
                   </span>
-                  {s.overdue && (
+                  {student.overdue && (
                     <span className="ml-2">
                       <OverdueBadge />
                     </span>
@@ -186,7 +186,7 @@ export function StudentsTable({
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
-                    href={`/staff/students/${s.id}`}
+                    href={`/staff/students/${student.id}`}
                     className="text-brand hover:underline"
                   >
                     View
