@@ -89,7 +89,7 @@ export function NewAssessmentForm({ programmes }: { programmes: Programme[] }) {
 
       <div>
         <label className="label" htmlFor="programme">
-          Programme (optional — leave blank to open to everyone)
+          Programme (optional, leave blank to open to everyone)
         </label>
         <select
           id="programme"
