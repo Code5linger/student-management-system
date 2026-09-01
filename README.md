@@ -2,7 +2,7 @@
 
 A focused implementation of the four workflows a Registry Administrator uses daily: **Enrolment**, **Fees & Payments**, **Assessment Submission**, and **Marksheet & Results**.
 
-Built with Next.js 16 (App Router, Turbopack), Tailwind CSS 4, PostgreSQL, and Prisma ORM 7.
+Built with Next.js 16 (App Router, Turbopack), Tailwind CSS 4 with a partial shadcn/ui migration, PostgreSQL, Prisma ORM 7, Zod validation, and Vitest for unit tests. Optionally runs in Docker.
 
 ---
 
@@ -38,6 +38,35 @@ npx prisma generate   # generates the Prisma Client (into src/generated/prisma �
 npx prisma db push    # creates the tables from schema.prisma
 npm run db:seed       # loads demo data (5 students, 2 programmes, payments, grades)
 ```
+
+### Running tests
+
+```bash
+npm test         # runs once
+npm run test:watch
+```
+
+39 tests, covering the pure business logic (`src/lib/registry.ts`) and Zod
+validation schemas (`src/lib/validation.ts`) — balance math, overdue/late
+boundaries, grade classification, and a couple of deliberately-tricky Zod
+cases (e.g. a boolean schema correctly rejecting the string `"false"`
+rather than coercing it to `true`). These do **not** cover the payment
+transaction's concurrency behavior or the published-grade edit rule, since
+both need a real Postgres connection to exercise meaningfully — see
+`docs/product-decisions.md` for that gap spelled out.
+
+### Running with Docker (alternative to steps 1-5 above)
+
+```bash
+docker compose up --build
+# in another terminal, once it's up:
+docker compose exec app npx prisma db push
+docker compose exec app npm run db:seed
+```
+
+This has **not** been built/run in the environment that wrote it (no Docker
+daemon was available there) — see `docs/ai-usage.md` for exactly what was
+and wasn't verified. Treat the first `docker compose up` as a real test.
 
 > **Note on Prisma 7**: this project pins `prisma`/`@prisma/client` to `^7.10.0`, the current stable line — running `npm install prisma@latest` will actually pull `8.0.0-rc.x`, a beta "unified CLI" package with some known-vulnerable bundled tooling. Don't upgrade past 7.x here without checking Prisma 8's status first.
 >
@@ -110,6 +139,9 @@ I have not yet run this specific migrated version against a live database or in 
 ```
 next.config.mjs / postcss.config.mjs — build config (ESM; see package.json's "type": "module")
 prisma.config.ts     — Prisma 7's CLI config (DB URL, migrations path, seed command)
+components.json      — shadcn/ui config (style, aliases, theme mode)
+Dockerfile / docker-compose.yml / .dockerignore — containerized setup (unverified, see above)
+vitest.config.ts     — test runner config
 docs/
   product-decisions.md — full reasoning behind every non-obvious decision
   edge-cases.md         — scannable table of edge cases and how each is handled
@@ -126,22 +158,27 @@ src/
     staff/              — staff-facing pages (dashboard, students, assessments)
     student/[id]/       — student-facing pages (record, assessments, marksheet)
     api/                — route handlers (students, programmes, payments, assessments, submissions, grades, dashboard)
-  components/           — shared badge components
+  components/           — shared badge components (now built on src/components/ui/badge.tsx)
+  components/ui/        — hand-authored shadcn/ui primitives (button, input, label, card, badge, table, select)
   lib/
     prisma.ts           — Prisma Client singleton
     session.ts          — reads the role cookie into a typed Session
     api-guard.ts         — requireStaff()/requireStudent() checks + shared error handling, used in every API route
-    registry.ts          — pure business logic (balance, overdue, classification, validation helpers, business-rule errors) — safe for client components
+    validation.ts         — Zod schemas for every API route's request body
+    utils.ts              — cn() className-merging helper (shadcn convention)
+    registry.ts          — pure business logic (balance, overdue, classification, validation helpers, business-rule errors) — safe for client components; also has registry.test.ts alongside it
     registry.server.ts   — Prisma-dependent helpers (atomic Student ID generation) — server-only
     storage.ts           — local file storage for submissions, with size/type validation
 ```
 
 ## What I'd do next with more time
 
+- Finish the shadcn/ui migration — only `badges.tsx` and `new-student-form.tsx` are actually migrated; the rest of the forms and tables still use the pre-migration custom Tailwind classes (see `docs/product-decisions.md` for the exact list).
+- Integration tests for the payment transaction's concurrency behavior and the published-grade edit rule, both of which need a real Postgres connection to exercise (unit tests can't reach them).
+- Actually build and run the Docker setup — it's never been executed, only reasoned through.
 - Real authentication (signed sessions, actual login) — the current cookie-based guard stops casual access but isn't cryptographically trustworthy.
 - Move file storage to S3/Vercel Blob.
 - URL-synced filters and pagination state on the students list, so a filtered view is shareable/bookmarkable (currently held in React state only).
-- Tests around the balance/overdue/classification/overpayment logic in `src/lib/registry.ts` and the payment transaction, since that's the highest-value logic to protect from regressions.
 - Prisma migrations (`prisma migrate dev`) committed to the repo instead of relying on `db push` for schema changes going forward.
 - Bulk grade publication, if staff feedback suggests one-at-a-time is too slow in practice.
 
