@@ -22,17 +22,6 @@ export function StatusEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // async function updateStatus(next: string) {
-  //   setStatus(next);
-  //   setSaving(true);
-  //   await fetch(`/api/students/${studentId}`, {
-  //     method: 'PATCH',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ status: next }),
-  //   });
-  //   setSaving(false);
-  //   router.refresh();
-  // }
 
   async function updateStatus(next: Status) {
     const previous = status;
@@ -69,6 +58,12 @@ export function StatusEditor({
 
   return (
     <div className="space-y-1">
+      {error && (
+        <p className="text-sm text-rust bg-rust/10 px-3 py-2 rounded-sm">
+          {error}
+        </p>
+      )}
+
       <select
         className="input w-40"
         value={status}
@@ -82,8 +77,6 @@ export function StatusEditor({
           </option>
         ))}
       </select>
-
-      {error && <p className="text-xs text-rust">{error}</p>}
     </div>
   );
 }

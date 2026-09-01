@@ -48,11 +48,11 @@ export function RolePicker({ students }: { students: StudentOption[] }) {
           onChange={(e) => setSelected(e.target.value)}
         >
           {students.length === 0 && (
-            <option value="">No students yet — seed the database first</option>
+            <option value="">No students yet, seed the database first</option>
           )}
           {students.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.studentId} — {s.fullName}
+              {s.studentId} - {s.fullName}
             </option>
           ))}
         </select>

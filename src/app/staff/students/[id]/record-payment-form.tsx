@@ -10,30 +10,6 @@ export function RecordPaymentForm({ studentId }: { studentId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // async function handleSubmit(e: React.FormEvent) {
-  //   e.preventDefault();
-  //   setError(null);
-  //   setSubmitting(true);
-
-  //   const res = await fetch(`/api/students/${studentId}/payments`, {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ amount, referenceNumber }),
-  //   });
-
-  //   setSubmitting(false);
-
-  //   if (!res.ok) {
-  //     const body = await res.json();
-  //     setError(body.error ?? 'Could not record payment.');
-  //     return;
-  //   }
-
-  //   setAmount('');
-  //   setReferenceNumber('');
-  //   router.refresh();
-  // }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);

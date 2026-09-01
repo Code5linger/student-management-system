@@ -59,30 +59,6 @@ export default async function StudentDetailPage({
           <Row label="Status" value={<StatusBadge status={student.status} />} />
         </section>
 
-        {/* <section className="card space-y-3 text-sm">
-          <h2 className="font-semibold mb-2">Fees & payments</h2>
-          <Row label="Assigned fee" value={`£${assignedFee.toFixed(2)}`} />
-          {feeDiffersFromProgramme && (
-            <p className="text-xs text-ink/40 -mt-2">
-              Fee was {formatCurrency(assignedFee)} at enrolment. The current
-              programme fee is now {formatCurrency(currentProgrammeFee)}.
-            </p>
-          )}
-          <Row
-            label="Total paid"
-            value={formatCurrency(assignedFee - balance)}
-          />
-          <Row
-            label="Outstanding balance"
-            value={
-              <span className={balance > 0 ? 'text-rust font-semibold' : ''}>
-                {formatCurrency(balance)} {overdue && <OverdueBadge />}
-              </span>
-            }
-          />
-          <Row label="Fee due date" value={formatDate(student.feeDueDate)} />
-        </section> */}
-
         <section className="card space-y-3 text-sm">
           <h2 className="font-semibold mb-2">Fees & payments</h2>
 

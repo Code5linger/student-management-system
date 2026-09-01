@@ -8,7 +8,7 @@ const COOKIE_OPTS = {
   httpOnly: true,
   sameSite: 'lax' as const,
   path: '/',
-  maxAge: 60 * 60 * 8, // 8 hours — plenty for a demo/grading session
+  maxAge: 60 * 60 * 8, // 8 hours
 };
 
 export async function enterAsStaff() {
@@ -21,7 +21,7 @@ export async function enterAsStaff() {
 export async function enterAsStudent(
   studentId: string,
 ): Promise<{ error: string } | void> {
-  // Validate the student actually exists before trusting the cookie to it —
+  // Validate the student actually exists before trusting the cookie to it
   // otherwise a stale/forged id would just 404 on every page.
   const student = await prisma.student.findUnique({
     where: { id: studentId },

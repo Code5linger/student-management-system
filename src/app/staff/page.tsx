@@ -78,7 +78,7 @@ export default async function StaffDashboard() {
                   </div>
                 </div>
                 <span className="font-mono text-rust">
-                  ${s.balance.toFixed(2)}
+                  £{s.balance.toFixed(2)}
                 </span>
               </li>
             ))}
@@ -125,7 +125,7 @@ export default async function StaffDashboard() {
                   <span className="font-medium">{g.student.fullName}</span>
                   <span className="text-ink/50">
                     {' '}
-                    — {g.submission.assessment.title}
+                    , {g.submission.assessment.title}
                   </span>
                 </div>
                 <Link

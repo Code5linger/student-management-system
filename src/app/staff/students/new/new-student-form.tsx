@@ -20,30 +20,6 @@ export function NewStudentForm({ programmes }: { programmes: Programme[] }) {
   const [submitting, setSubmitting] = useState(false);
   const selectedProgramme = programmes.find((p) => p.id === form.programmeId);
 
-  // async function handleSubmit(e: React.FormEvent) {
-  //   e.preventDefault();
-  //   setError(null);
-  //   setSubmitting(true);
-
-  //   const res = await fetch('/api/students', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify(form),
-  //   });
-
-  //   setSubmitting(false);
-
-  //   if (!res.ok) {
-  //     const body = await res.json();
-  //     setError(body.error ?? 'Something went wrong.');
-  //     return;
-  //   }
-
-  //   const student = await res.json();
-  //   router.push(`/staff/students/${student.id}`);
-  //   router.refresh();
-  // }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
