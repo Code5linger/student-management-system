@@ -144,3 +144,18 @@ src/
 - Tests around the balance/overdue/classification/overpayment logic in `src/lib/registry.ts` and the payment transaction, since that's the highest-value logic to protect from regressions.
 - Prisma migrations (`prisma migrate dev`) committed to the repo instead of relying on `db push` for schema changes going forward.
 - Bulk grade publication, if staff feedback suggests one-at-a-time is too slow in practice.
+
+### Known Issue: Browser Console Web Vitals Error
+
+In some development and production browser sessions, the console may display the following error:
+
+```text
+Uncaught TypeError: Cannot read properties of undefined (reading 'startTime')
+at et.reportAllChanges
+```
+
+This originates from Web Vitals/INP instrumentation rather than application code. The stack trace points to dynamically executed `VM*.js` code and does not reference any application source files. The issue was reproduced locally as well as on the deployed Vercel environment.
+
+It does not affect the application's functionality, database operations, authentication, assessment workflow, submissions, grading, or marksheet functionality.
+
+This has therefore been documented as a known tooling/instrumentation issue rather than suppressing the error globally or modifying application error handling.
