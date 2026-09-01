@@ -16,7 +16,7 @@ export default function GlobalError({
         </h1>
         <p className="text-ink/60 text-sm mb-6">
           {error.message ||
-            'Please try again — if this keeps happening, check your database connection.'}
+            'Please try again, if this keeps happening, check your database connection.'}
         </p>
         <button className="btn-primary" onClick={() => reset()}>
           Try again

@@ -25,7 +25,7 @@ export async function saveSubmissionFile(
 
   if (file.size > MAX_SUBMISSION_FILE_SIZE_BYTES) {
     const maxMb = MAX_SUBMISSION_FILE_SIZE_BYTES / (1024 * 1024);
-    throw new Error(`File is too large — the maximum is ${maxMb}MB.`);
+    throw new Error(`File is too large, the maximum is ${maxMb}MB.`);
   }
   if (file.size === 0) {
     throw new Error('That file appears to be empty.');

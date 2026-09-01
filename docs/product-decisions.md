@@ -23,7 +23,7 @@ explicitly and enforce it in code (not just hidden in the UI):
   Cannot view another student's data, create assessments, enter grades, or
   publish results.
 
-There's still no real login — the brief allows a simple role toggle — but the
+There's still no real login, the brief allows a simple role toggle, but the
 toggle sets a session cookie that's checked both in middleware (blocks
 loading the wrong pages) and independently inside every API route (blocks
 calling the wrong endpoint directly, bypassing the UI). See
@@ -102,7 +102,7 @@ reversal transactions rather than deletion, but that's beyond this scope.
 **Overdue is a defined state, not just "balance > 0."** The brief asks for
 "overdue" but never defines it, so we added `feeDueDate` on Student
 (defaulted to 30 days after enrolment, staff-editable). A student is overdue
-when `feeDueDate` has passed *and* they still owe money — a student who
+when `feeDueDate` has passed _and_ they still owe money — a student who
 enrolled yesterday and hasn't paid yet is outstanding, not overdue.
 Withdrawn/deferred students are still included in overdue checks, since they
 may still owe money and a real Registry office keeps chasing that balance
@@ -147,7 +147,7 @@ their session, not from anything the client claims.
 specifying decimals; we deliberately kept grades as integers rather than
 adding decimal precision, since the brief doesn't ask for it and percentage-
 based whole-number grading is the more common default — this is a case
-where we chose *not* to add complexity a stronger AI-generated first draft
+where we chose _not_ to add complexity a stronger AI-generated first draft
 suggested.
 
 **A grade only exists once a submission exists** — `Grade.submissionId` is a
@@ -155,6 +155,7 @@ required 1:1 relation. You can't grade work that was never handed in.
 
 **"Not graded," "withheld," and "published" are three distinct, real
 states**, not two:
+
 - No `Grade` row at all → **not graded**.
 - `Grade` exists, `publishedAt` is `null` → **withheld** (staff can see the
   score; the student cannot).
@@ -192,7 +193,7 @@ did build:
 - **Submission attempt history.** Resubmitting overwrites the current
   submission rather than keeping every prior attempt. The brief asks for
   resubmission, not a version history of it.
-- **Audit trail of *who* performed an action** (`createdBy`/`updatedBy`).
+- **Audit trail of _who_ performed an action** (`createdBy`/`updatedBy`).
   There's no real user identity to attach to actions beyond the role
   toggle, so this would be cosmetic rather than a real audit trail.
 - **URL-synced filters/pagination state** on the student list. The search,

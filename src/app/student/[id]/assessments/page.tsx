@@ -67,7 +67,7 @@ export default async function StudentAssessmentsPage({
                 </p>
               ) : pastDeadline && mySubmission ? (
                 <p className="text-sm text-ink/50">
-                  The deadline has passed — this submission is final.
+                  The deadline has passed, this submission is final.
                 </p>
               ) : (
                 <SubmissionUploader

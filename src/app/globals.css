@@ -12,16 +12,16 @@
   --color-rust: #b4552a;
   --color-gold: #b08b2f;
 
-  --font-display: var(--font-plex-serif);
-  --font-sans: var(--font-plex-sans);
-  --font-mono: var(--font-plex-mono);
+  --font-display: "IBM Plex Serif", Georgia, serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
 
   --radius-sm: 2px;
 }
 
 @layer base {
   body {
-    @apply bg-paper text-ink antialiased;
+    @apply bg-paper text-ink font-sans antialiased;
   }
 
   h1,
@@ -31,5 +31,35 @@
   h5,
   h6 {
     font-family: var(--font-plex-serif);
+  }
+}
+
+@layer components {
+  .card {
+    @apply border border-line bg-white rounded-sm p-5;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-brand text-white hover:bg-brand-dark;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-line bg-white text-ink hover:bg-paper;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-rust text-white hover:brightness-90;
+  }
+
+  .input {
+    @apply w-full rounded-sm border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand;
+  }
+
+  .label {
+    @apply block text-xs font-medium uppercase tracking-wide text-ink/60 mb-1;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium;
   }
 }

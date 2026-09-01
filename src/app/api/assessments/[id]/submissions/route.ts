@@ -74,7 +74,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            'The deadline has passed — this submission can no longer be replaced.',
+            'The deadline has passed, this submission can no longer be replaced.',
         },
         { status: 403 },
       );

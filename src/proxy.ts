@@ -18,7 +18,7 @@ export function proxy(req: NextRequest) {
     if (role !== 'student' || !studentId) {
       return NextResponse.redirect(new URL('/', req.url));
     }
-    // A student can only view their own record — not another student's id.
+    // A student can only view their own record, not another student's id.
     if (requestedId && requestedId !== studentId) {
       return NextResponse.redirect(new URL(`/student/${studentId}`, req.url));
     }
