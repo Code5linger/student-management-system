@@ -1,4 +1,8 @@
 import 'dotenv/config';
+import { put } from '@vercel/blob';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { classifyScore } from '../src/lib/registry';
@@ -188,6 +192,30 @@ async function main() {
 
   console.log('Creating assessments...');
 
+  // The programming assessment is deliberately set with a past deadline to allow for on-time and late submissions in the seed data. The business assessment is deliberately set with a future deadline to allow for ungraded submissions in the seed data.
+
+  console.log('Uploading seed placeholder assignment to Vercel Blob...');
+
+  const placeholderPath = path.join(
+    process.cwd(),
+    'public',
+    'uploads',
+    'seed-placeholder.pdf',
+  );
+
+  const placeholderBuffer = await readFile(placeholderPath);
+
+  const placeholderBlob = await put(
+    'submissions/seed-placeholder.pdf',
+    placeholderBuffer,
+    {
+      access: 'public',
+      addRandomSuffix: true,
+    },
+  );
+
+  console.log(`Seed file uploaded: ${placeholderBlob.pathname}`);
+
   const programmingAssessment = await prisma.assessment.create({
     data: {
       title: 'Programming Fundamentals Coursework',
@@ -213,7 +241,7 @@ async function main() {
       studentId: james.id,
       assessmentId: programmingAssessment.id,
       fileName: 'james-wilson-programming-coursework.pdf',
-      filePath: '/uploads/seed-placeholder.pdf',
+      filePath: placeholderBlob.pathname,
       isLate: false,
       submittedAt: daysAgo(5),
     },
@@ -224,7 +252,7 @@ async function main() {
       studentId: amelia.id,
       assessmentId: programmingAssessment.id,
       fileName: 'amelia-hughes-programming-coursework.pdf',
-      filePath: '/uploads/seed-placeholder.pdf',
+      filePath: placeholderBlob.pathname,
       isLate: true,
       submittedAt: daysAgo(1),
     },
@@ -235,7 +263,7 @@ async function main() {
       studentId: sophie.id,
       assessmentId: businessAssessment.id,
       fileName: 'sophie-patel-marketing-case-study.pdf',
-      filePath: '/uploads/seed-placeholder.pdf',
+      filePath: placeholderBlob.pathname,
       isLate: false,
       submittedAt: daysAgo(2),
     },

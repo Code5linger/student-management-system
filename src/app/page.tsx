@@ -14,8 +14,10 @@ export default async function HomePage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <p className="label text-brand! mb-2">PEN Global</p>
-          <h1 className="text-3xl font-semibold">Student Management System</h1>
-          <p className="label text-brand! mb-2">Registry Module</p>
+          <h1 className="text-3xl font-semibold mb-2">
+            Student Management System
+          </h1>
+          <p className="label text-brand! mt-3">Registry Module</p>
           <p className="text-ink/60 mt-2 text-sm">
             No login is wired up for this demo, pick how you would like to
             enter.

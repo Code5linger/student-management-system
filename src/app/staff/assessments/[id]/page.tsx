@@ -64,9 +64,8 @@ export default async function AssessmentDetailPage({
                     href={sub.filePath}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand hover:underline"
                   >
-                    {sub.fileName}
+                    View submission
                   </a>
                 </td>
                 <td className="px-4 py-3" colSpan={2}>

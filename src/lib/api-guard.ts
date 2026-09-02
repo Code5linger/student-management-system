@@ -46,7 +46,7 @@ export function handleApiError(
   }
   if (code === 'P2002') {
     return NextResponse.json(
-      { error: 'That value is already in use.' },
+      { error: 'Duplicate Value! Please try again.' },
       { status: 409 },
     );
   }

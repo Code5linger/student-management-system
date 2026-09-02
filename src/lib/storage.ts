@@ -1,19 +1,17 @@
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import { randomUUID } from 'crypto';
+import { put } from '@vercel/blob';
+
 import {
   MAX_SUBMISSION_FILE_SIZE_BYTES,
   ALLOWED_SUBMISSION_MIME_TYPES,
 } from './registry';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
 const ALLOWED_EXTENSIONS = ['.pdf', '.docx'];
 
 export async function saveSubmissionFile(
   file: File,
 ): Promise<{ fileName: string; filePath: string }> {
   // TODO: I am trusting the filename extension + MIME type. But at this stage I wouldn't necessarily introduce a heavyweight malware-scanning pipeline.
-  const ext = path.extname(file.name).toLowerCase();
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
     throw new Error('Only PDF or DOCX files are accepted.');
@@ -25,21 +23,22 @@ export async function saveSubmissionFile(
 
   if (file.size > MAX_SUBMISSION_FILE_SIZE_BYTES) {
     const maxMb = MAX_SUBMISSION_FILE_SIZE_BYTES / (1024 * 1024);
+
     throw new Error(`File is too large, the maximum is ${maxMb}MB.`);
   }
+
   if (file.size === 0) {
     throw new Error('That file appears to be empty.');
   }
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
+  const storedName = `submissions/${crypto.randomUUID()}${ext}`;
 
-  const storedName = `${randomUUID()}${ext}`;
-  const diskPath = path.join(UPLOAD_DIR, storedName);
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(diskPath, buffer);
+  const blob = await put(storedName, file, {
+    access: 'public',
+  });
 
   return {
     fileName: file.name,
-    filePath: `/uploads/${storedName}`,
+    filePath: blob.url,
   };
 }
