@@ -1,42 +1,43 @@
-const STATUS_STYLES: Record<string, string> = {
-  ENROLLED: 'bg-brand/10 text-brand-dark',
-  DEFERRED: 'bg-gold/15 text-gold',
-  WITHDRAWN: 'bg-rust/10 text-rust',
-  COMPLETED: 'bg-ink/10 text-ink/70',
+import { Badge, type BadgeProps } from '@/components/ui/badge';
+
+const STATUS_VARIANTS: Record<string, BadgeProps['variant']> = {
+  ENROLLED: 'default',
+  DEFERRED: 'gold',
+  WITHDRAWN: 'destructiveSoft',
+  COMPLETED: 'secondary',
 };
 
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <span
-      className={`badge ${STATUS_STYLES[status] ?? 'bg-ink/10 text-ink/70'}`}
-    >
+    <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>
       {status.charAt(0) + status.slice(1).toLowerCase()}
-    </span>
+    </Badge>
   );
 }
+
+const CLASSIFICATION_VARIANTS: Record<string, BadgeProps['variant']> = {
+  Distinction: 'default',
+  Merit: 'gold',
+  Pass: 'secondary',
+  Fail: 'destructiveSoft',
+};
 
 export function ClassificationBadge({
   classification,
 }: {
   classification: string;
 }) {
-  const styles: Record<string, string> = {
-    Distinction: 'bg-brand/10 text-brand-dark',
-    Merit: 'bg-gold/15 text-gold',
-    Pass: 'bg-ink/10 text-ink/70',
-    Fail: 'bg-rust/10 text-rust',
-  };
   return (
-    <span className={`badge ${styles[classification] ?? ''}`}>
+    <Badge variant={CLASSIFICATION_VARIANTS[classification] ?? 'secondary'}>
       {classification}
-    </span>
+    </Badge>
   );
 }
 
 export function OverdueBadge() {
-  return <span className="badge bg-rust text-white">Overdue</span>;
+  return <Badge variant="destructive">Overdue</Badge>;
 }
 
 export function LateBadge() {
-  return <span className="badge bg-gold/20 text-gold">Late</span>;
+  return <Badge variant="goldSoft">Late</Badge>;
 }

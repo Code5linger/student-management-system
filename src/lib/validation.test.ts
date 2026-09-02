@@ -63,7 +63,8 @@ describe('createStudentSchema', () => {
   });
 
   it('rejects a missing programmeId', () => {
-    const { ...withoutProgramme } = validBase;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { programmeId: _programmeId, ...withoutProgramme } = validBase;
     const result = createStudentSchema.safeParse(withoutProgramme);
     expect(result.success).toBe(false);
   });

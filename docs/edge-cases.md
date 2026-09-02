@@ -4,43 +4,43 @@ A scannable reference of edge cases considered during this build and how
 each is actually handled in code. See `docs/product-decisions.md` for the
 fuller reasoning behind the ones marked with a design decision.
 
-| Area | Edge case | Handling |
-|---|---|---|
-| Enrolment | Duplicate email | Rejected — unique constraint + a friendly 400/409 message, not a raw DB error |
-| Enrolment | Future date of birth | Rejected at the API layer |
-| Enrolment | Implausible date of birth (e.g. a typo'd birth year) | Rejected — minimum-age check (5 years as of Jan 1 of enrolment year) |
-| Enrolment | Duplicate Student ID | Prevented structurally — atomic counter, not application-level counting |
-| Enrolment | Two admins create students at the same instant | Handled — `IdCounter` increment is a single atomic SQL statement |
-| Enrolment | Non-existent programme selected | Rejected with a 400 before the student is created |
-| Enrolment | Invalid/out-of-range academic year or status | Rejected with a specific message, not a generic 500 |
-| Enrolment | Withdrawn student accidentally reset to Enrolled | Not specifically blocked — no institutional progression rules are enforced beyond the four allowed statuses, since the brief doesn't define transition rules (see product-decisions.md) |
-| Fees | Zero or negative payment | Rejected |
-| Fees | Payment exceeding the outstanding balance | Rejected (409) — deliberate no-overpayment policy |
-| Fees | Duplicate payment reference number | Rejected — unique constraint |
-| Fees | Two simultaneous payments against the same student | Handled — `SERIALIZABLE` transaction; the losing request gets a 409 asking it to retry rather than silently overdrawing the account |
-| Fees | Positive balance but due date hasn't passed | Correctly shown as *outstanding*, not *overdue* — these are different states |
-| Fees | Withdrawn/deferred student with an unpaid balance | Still surfaced as overdue on the dashboard — enrolment status doesn't excuse a debt |
-| Fees | Programme fee changes after students have already enrolled | Existing students keep their original `assignedFee`; only new enrolments see the new price |
-| Fees | Payment recorded for a non-existent student | Rejected — 404 before any write |
-| Submissions | Wrong file type | Rejected — extension + MIME type checked |
-| Submissions | Oversized file | Rejected — 10MB cap, explicit and documented |
-| Submissions | Empty (0-byte) file | Rejected |
-| Submissions | Late submission | Accepted, and flagged — never rejected solely for being late, per the brief |
-| Submissions | Resubmission before the deadline | Accepted — overwrites the existing submission row |
-| Submissions | Attempted resubmission after the deadline | Rejected (403) — a first-time late submission is still accepted, but an *existing* submission can't be replaced once the deadline has passed |
-| Submissions | Student submits to an assessment outside their programme | Rejected (403) |
-| Submissions | Student attempts to submit as a different student (forged `studentId` in the request) | Rejected — the server trusts the session, not the request body |
-| Submissions | Deadline race at exactly midnight | Evaluated using server time, never the client's clock |
-| Grades | Score outside 0–100, or non-integer | Rejected, both client-side (fast feedback) and server-side (the rule that actually matters) |
-| Grades | No submission exists yet | Can't be graded — `Grade.submissionId` is a required relation |
-| Grades | Grade of exactly 0 | Valid — a real Fail, distinct from "not graded" |
-| Grades | Editing the score of an already-published grade | Rejected (409) unless the grade is withheld first — see product-decisions.md |
-| Grades | Late submission scoring highly | Allowed and correct — lateness is a timing fact, not an academic penalty the brief asked us to apply |
-| Results | Unpublished grade | Excluded from the student's marksheet at the query level (`publishedAt: { not: null }`), not just hidden in the UI — so there's no code path that could leak it |
-| Results | Withheld vs. not-graded | Modeled as genuinely different states (see product-decisions.md), not conflated |
-| Security | Student visits a staff URL directly | Redirected by middleware before the page renders |
-| Security | Student visits another student's URL | Redirected back to their own record |
-| Security | Direct API call bypassing the UI (e.g. `curl POST /api/students`) | Rejected independently by the same session check used for pages — middleware alone wouldn't have caught this |
-| Security | Client attempts to set its own Student ID, balance, or grade | Ignored — all three are always server-computed, never accepted from request bodies |
-| General | Database/network failure mid-request | Caught by route-level try/catch and Next.js error boundaries (`error.tsx`) instead of a raw crash |
-| General | Non-existent record requested by ID | 404 with a specific message, not a generic 500 or a silent empty page |
+| Area        | Edge case                                                                             | Handling                                                                                                                                                                                |
+| ----------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Enrolment   | Duplicate email                                                                       | Rejected — unique constraint + a friendly 400/409 message, not a raw DB error                                                                                                           |
+| Enrolment   | Future date of birth                                                                  | Rejected at the API layer                                                                                                                                                               |
+| Enrolment   | Implausible date of birth (e.g. a typo'd birth year)                                  | Rejected — minimum-age check (5 years as of Jan 1 of enrolment year)                                                                                                                    |
+| Enrolment   | Duplicate Student ID                                                                  | Prevented structurally — atomic counter, not application-level counting                                                                                                                 |
+| Enrolment   | Two admins create students at the same instant                                        | Handled — `IdCounter` increment is a single atomic SQL statement                                                                                                                        |
+| Enrolment   | Non-existent programme selected                                                       | Rejected with a 400 before the student is created                                                                                                                                       |
+| Enrolment   | Invalid/out-of-range academic year or status                                          | Rejected with a specific message, not a generic 500                                                                                                                                     |
+| Enrolment   | Withdrawn student accidentally reset to Enrolled                                      | Not specifically blocked — no institutional progression rules are enforced beyond the four allowed statuses, since the brief doesn't define transition rules (see product-decisions.md) |
+| Fees        | Zero or negative payment                                                              | Rejected                                                                                                                                                                                |
+| Fees        | Payment exceeding the outstanding balance                                             | Rejected (409) — deliberate no-overpayment policy                                                                                                                                       |
+| Fees        | Duplicate payment reference number                                                    | Rejected — unique constraint                                                                                                                                                            |
+| Fees        | Two simultaneous payments against the same student                                    | Handled — `SERIALIZABLE` transaction; the losing request gets a 409 asking it to retry rather than silently overdrawing the account                                                     |
+| Fees        | Positive balance but due date hasn't passed                                           | Correctly shown as _outstanding_, not _overdue_ — these are different states                                                                                                            |
+| Fees        | Withdrawn/deferred student with an unpaid balance                                     | Still surfaced as overdue on the dashboard — enrolment status doesn't excuse a debt                                                                                                     |
+| Fees        | Programme fee changes after students have already enrolled                            | Existing students keep their original `assignedFee`; only new enrolments see the new price                                                                                              |
+| Fees        | Payment recorded for a non-existent student                                           | Rejected — 404 before any write                                                                                                                                                         |
+| Submissions | Wrong file type                                                                       | Rejected — extension + MIME type checked                                                                                                                                                |
+| Submissions | Oversized file                                                                        | Rejected — 10MB cap, explicit and documented                                                                                                                                            |
+| Submissions | Empty (0-byte) file                                                                   | Rejected                                                                                                                                                                                |
+| Submissions | Late submission                                                                       | Accepted, and flagged — never rejected solely for being late, per the brief                                                                                                             |
+| Submissions | Resubmission before the deadline                                                      | Accepted — overwrites the existing submission row                                                                                                                                       |
+| Submissions | Attempted resubmission after the deadline                                             | Rejected (403) — a first-time late submission is still accepted, but an _existing_ submission can't be replaced once the deadline has passed                                            |
+| Submissions | Student submits to an assessment outside their programme                              | Rejected (403)                                                                                                                                                                          |
+| Submissions | Student attempts to submit as a different student (forged `studentId` in the request) | Rejected — the server trusts the session, not the request body                                                                                                                          |
+| Submissions | Deadline race at exactly midnight                                                     | Evaluated using server time, never the client's clock                                                                                                                                   |
+| Grades      | Score outside 0–100, or non-integer                                                   | Rejected, both client-side (fast feedback) and server-side (the rule that actually matters)                                                                                             |
+| Grades      | No submission exists yet                                                              | Can't be graded — `Grade.submissionId` is a required relation                                                                                                                           |
+| Grades      | Grade of exactly 0                                                                    | Valid — a real Fail, distinct from "not graded"                                                                                                                                         |
+| Grades      | Editing the score of an already-published grade                                       | Rejected (409) unless the grade is withheld first — see product-decisions.md                                                                                                            |
+| Grades      | Late submission scoring highly                                                        | Allowed and correct — lateness is a timing fact, not an academic penalty the brief asked us to apply                                                                                    |
+| Results     | Unpublished grade                                                                     | Excluded from the student's marksheet at the query level (`publishedAt: { not: null }`), not just hidden in the UI — so there's no code path that could leak it                         |
+| Results     | Withheld vs. not-graded                                                               | Modeled as genuinely different states (see product-decisions.md), not conflated                                                                                                         |
+| Security    | Student visits a staff URL directly                                                   | Redirected by middleware before the page renders                                                                                                                                        |
+| Security    | Student visits another student's URL                                                  | Redirected back to their own record                                                                                                                                                     |
+| Security    | Direct API call bypassing the UI (e.g. `curl POST /api/students`)                     | Rejected independently by the same session check used for pages — middleware alone wouldn't have caught this                                                                            |
+| Security    | Client attempts to set its own Student ID, balance, or grade                          | Ignored — all three are always server-computed, never accepted from request bodies                                                                                                      |
+| General     | Database/network failure mid-request                                                  | Caught by route-level try/catch and Next.js error boundaries (`error.tsx`) instead of a raw crash                                                                                       |
+| General     | Non-existent record requested by ID                                                   | 404 with a specific message, not a generic 500 or a silent empty page                                                                                                                   |

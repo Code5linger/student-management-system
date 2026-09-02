@@ -211,3 +211,54 @@ The common thread: every one of these came up while researching this
 assessment (including from AI-generated advice — see `docs/ai-usage.md`),
 and each was evaluated and consciously left out, rather than silently
 skipped because it wasn't mentioned.
+
+## Validation, testing, containers, and UI library — status
+
+A later round added Zod, Vitest, Docker, and a shadcn/ui migration. These
+landed at different levels of completeness, and it's worth being precise
+about which rather than implying uniform coverage:
+
+- **Zod — complete.** Every API route's request body validation now goes
+  through a schema in `src/lib/validation.ts` (`createStudentSchema`,
+  `updateStudentSchema`, `createPaymentSchema`, `createProgrammeSchema`,
+  `createAssessmentSchema`, `gradeSchema`, `publishToggleSchema`). The
+  hand-rolled `if` checks and regex are gone from every route.
+- **Unit tests — real, but scoped to pure logic.** 39 tests across
+  `src/lib/registry.test.ts` and `src/lib/validation.test.ts`, actually run
+  (not just written) via Vitest, covering balance math, overdue/late
+  boundary conditions, grade classification boundaries, email
+  normalization, minimum-age checks, and the Zod schemas' edge cases
+  (including a deliberate test that a boolean schema rejects the string
+  `"false"` rather than coercing it to `true`). What's **not** covered: the
+  payment transaction's concurrency behavior and the published-grade edit
+  rejection both live inside API route handlers that need a real Postgres
+  connection to exercise — that's an integration-test gap, not a unit-test
+  gap, and needs a different tool (e.g. a test database) to close.
+- **Docker — written, not verified.** `Dockerfile`, `docker-compose.yml`,
+  and `.dockerignore` exist and are reasoned through carefully (see the
+  comments in `Dockerfile` for the specific tradeoff of keeping dev
+  dependencies in the final image so `docker compose exec app npx prisma
+db push` works), but no Docker daemon was available to actually build or
+  run them. Treat this the same way as the framework migration in
+  `docs/ai-usage.md`: structurally sound, not yet executed.
+- **shadcn/ui — infrastructure complete and verified; component migration
+  partial.** `components.json`, the `cn()` utility, and the full semantic
+  CSS variable theme (mapped onto this project's existing brand palette
+  rather than shadcn's defaults) are in place and were verified by actually
+  running the Tailwind v4 compiler against them. Seven components were
+  hand-authored (`Button`, `Input`, `Label`, `Card`, `Badge`, `Table`,
+  `Select`) because the `shadcn` CLI needs to fetch component source from a
+  registry this environment's network policy blocks — they follow shadcn's
+  well-established, stable component shape rather than being guessed at.
+  `src/components/badges.tsx` is fully migrated (and since every page
+  imports its badges from there, that migration reaches the whole app).
+  `new-student-form.tsx` is fully migrated as a demonstrated end-to-end
+  pattern (Input, Label, Select, Button, Card all in real use). The
+  remaining forms and tables (`record-payment-form`, `new-assessment-form`,
+  `students-table`, `status-editor`, `submission-uploader`, `grade-row`,
+  and the plain HTML tables in the staff/student pages) still use the
+  original custom Tailwind classes (`.btn-primary`, `.input`, `.card`) —
+  functionally fine and visually consistent (same underlying colors), but
+  not actually shadcn components yet. Finishing that migration is
+  mechanical at this point — the pattern is established — but is real
+  remaining work, not done.
