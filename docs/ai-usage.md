@@ -1,133 +1,161 @@
 # AI Usage
 
-See the README's "How AI was used" section for the day-to-day account of
-building this with Claude. This file covers one specific round worth calling
-out separately: evaluating unsolicited AI-generated advice about the
-assessment itself.
+Please See the README's How AI was used section for the day-to-day account of building this project with Claude.
 
-## Evaluating AI advice, not just AI code
+This document covers three areas that are worth calling out separately:
 
-Partway through, I fed this assessment to a couple of different AI
-assistants and asked for their read on what was being tested and how to
-approach it. They came back with extremely long, thorough documents —
-architecture options, a 220-point decision inventory, edge-case tables, a
-recommended `docs/` structure, sample Prisma schemas, and so on.
+1. Evaluating unsolicited AI advice,
+2. Using AI during the framework migration, and
+3. Using AI when adding supporting tooling.
 
-Rather than implementing that output wholesale, I treated it as a second
-opinion to be reviewed against what was already built, the same way I'd
-review a colleague's design doc. Concretely:
+# Evaluating AI advice, not just AI code
 
-**Adopted, because the reasoning held up:**
+Partway through the project, I gave the assessment brief to several AI assistants and asked for their interpretation of what was being tested and how they would approach it.
 
-- Snapshotting the fee at enrolment (`assignedFee`) instead of computing
-  balances against the programme's live fee.
-- Replacing count-based Student ID generation with an atomic DB counter —
-  the original approach had a real (if narrow) race condition under
-  concurrent enrolments.
-- Rejecting overpayments, and specifically running payment creation inside a
-  serializable transaction so two concurrent payments can't jointly overdraw
-  an account.
-- Treating "not graded," "withheld," and "published" as three distinct
-  states, and protecting published grades from silent score edits — this
-  also surfaced a real bug in the existing "Save" button, which is a good
-  example of adversarial review catching something outside its original ask.
-- Writing down decisions and edge cases as their own documents
-  (`docs/product-decisions.md`, `docs/edge-cases.md`) rather than leaving
-  the reasoning implicit in code comments only.
+The responses were extensive: architecture alternatives, a 220-point decision inventory, edge-case tables, a proposed docs/ structure, Prisma schemas, and implementation suggestions.
 
-**Deliberately not adopted, with reasons recorded in
-`docs/product-decisions.md`'s "What we deliberately did not build" section:**
+I did not treat that output as a specification or implement it wholesale. I treated it as a second opinion to be reviewed against the assessment brief and the code already built, much as I would review a colleague's design document.
 
-- Decimal grade precision, a currency field, submission attempt/version
-  history, `createdBy`/`updatedBy` audit columns, URL-synced filter state,
-  bulk grade publication, CSV import/export.
+Adopted after review
 
-The reasoning for skipping these isn't "no time" — several would have been
-cheap to add. It's that none of them are required by the four workflows the
-brief actually specifies, and the brief itself rewards focus over breadth
-("we care more about how you think than how much you build"). Implementing
-every suggestion in a 220-point AI-generated checklist would have been the
-_wrong_ use of that advice — the useful skill here is evaluating which
-suggestions earn their complexity, not treating a long AI output as a
-todo list to clear.
+Several recommendations held up under closer examination and were incorporated:
 
-## Migrating the stack (Next.js 14→16, Tailwind 3→4, Prisma 5→7)
+Snapshotting the fee at enrolment (assignedFee) rather than calculating balances from the programme's current fee. This prevents later programme-fee changes from retroactively changing an existing student's financial obligation.
+Replacing count-based Student ID generation with an atomic database counter. The original approach had a real race condition under concurrent enrolments.
+Rejecting overpayments and creating payments inside a serializable transaction. This prevents concurrent payment requests from jointly exceeding the student's outstanding balance.
+Treating "not graded", "withheld", and "published" as distinct grade states. This also exposed a real issue in the original grading UI where a normal "Save" operation could potentially modify an already-published score.
+Documenting product decisions and edge cases separately in docs/product-decisions.md and docs/edge-cases.md, rather than leaving important reasoning implicit in implementation details.
 
-Separately from the above, the framework versions were later upgraded to
-current stable releases. This is worth documenting on its own because it's a
-different kind of AI usage than the rest of the build: less "generate this
-feature," more "verify this claim before I act on it."
+The important part was not simply accepting these recommendations. Each was checked against the actual requirements and implementation cost before being adopted.
 
-Three real problems surfaced specifically _because_ things were actually
-executed rather than just edited by pattern-matching against training data:
+# Deliberately not adopted
 
-1. **`prisma@latest` resolves to a beta package.** Running `npm install`
-   with `"prisma": "latest"` in package.json silently installed
-   `8.0.0-rc.12` — a beta "unified CLI" product bundling experimental
-   tooling with several known vulnerabilities (confirmed via `npm audit`
-   and `npm ls`). `@prisma/client@latest` correctly resolved to the stable
-   `7.10.0`. Fixed by pinning `prisma` to `^7.10.0` to match. A pure
-   documentation-based migration would very plausibly have missed this,
-   since Prisma's own docs describe 7.x as current stable.
-2. **A moved export silently changes from a type error to a runtime
-   error.** Prisma 7 relocated `Decimal`'s export from
-   `@prisma/client/runtime/library` to `@prisma/client/runtime/client`.
-   Confirmed by actually attempting the import in Node (`node -e`), not by
-   inference — an incorrect guess here would have looked fine until the
-   first request that touched a monetary value.
-3. **Tailwind v4's `@apply` doesn't support chaining custom component
-   classes.** `.btn-primary { @apply btn ...; }` (referencing another
-   hand-defined class named `.btn`) compiled fine in v3 but fails outright
-   in v4 ("Cannot apply unknown utility class `btn`"). This was caught by
-   actually running `@tailwindcss/cli` against the real stylesheet and
-   reading the compiler's own error, not by reading a migration guide —
-   several v4 migration articles gathered for this project didn't mention
-   this specific case.
+Several AI suggestions were intentionally rejected. The reasons are documented in the What we deliberately did not build section of docs/product-decisions.md.
 
-What could **not** be verified this way: `prisma generate` and `prisma db
-push` still require downloading a `schema-engine` binary from a host this
-sandbox's network policy blocks (Prisma 7 removed the old _query_-engine
-binary, which is progress, but a separate schema-engine binary remains for
-CLI operations). To still get real signal on the other ~95% of the codebase,
-a temporary, clearly-labeled type stub was substituted for the generated
-Prisma client, the full project was typechecked against it, and the stub
-was deleted before the code was handed over — it never shipped as part of
-the project. The honest summary: this migration is typechecked and
-structurally verified, but not yet run end-to-end against a live database.
+These include:
 
-## Adding Zod, tests, Docker, and shadcn/ui
+Decimal grade precision
+A dedicated currency field
+Submission attempt/version history
+createdBy / updatedBy audit columns
+URL-synchronised filter state
+Bulk grade publication
+CSV import/export
 
-A follow-up round added four things in one pass: Zod validation, unit
-tests, Docker, and a shadcn/ui migration. Two things about how this was
-done are worth recording:
+The reason for not implementing these was not simply lack of time. They were evaluated against the four workflows specified in the assessment brief, and none was necessary to satisfy those workflows.
 
-**Checking "latest" before trusting it, again.** The same trap that caught
-`prisma@latest` (resolving to a beta release) was checked for again before
-adding Zod — `npm view zod dist-tags` was run first, confirming `latest`
-correctly points to stable `4.5.4`. Worth doing every time a new dependency
-gets added on a fast-moving stack like this one, not just once.
+This distinction matters because a long AI-generated checklist can easily become a substitute for engineering judgment. The useful outcome of the review was identifying which suggestions materially improved correctness and which would add complexity without improving the required product.
 
-**A blocked CLI became a "reproduce the known pattern" problem instead of a
-blocker.** The `shadcn` CLI needs to fetch component source from a
-registry this sandbox can't reach — confirmed by actually attempting
-`npx shadcn@latest add button` and watching it hang rather than assuming it
-would fail. Rather than skip shadcn entirely, the seven needed components
-were hand-authored following shadcn's own well-established, unchanged-in-
-years structural conventions (a `cva`-based variant system for
-`Button`/`Badge`, thin `React.forwardRef` wrappers around native elements
-for `Input`/`Card`, and Radix-primitive wrappers for `Label`/`Select`).
-This is a case where reproducing a known, stable pattern from training
-knowledge is reasonable — unlike the framework version numbers earlier in
-this document, component _shape_ for a library like shadcn doesn't drift
-version to version the way a package's latest release does, so the
-verification bar here was "does the CSS theme actually compile and does
-`tsc` accept it," both of which were checked directly, rather than "is this
-the exact latest published source," which isn't really a meaningful
-question for hand-authored code following a stable pattern.
+# Migrating the stack
 
-**What's honestly unverified in this round**: the Docker setup (no Docker
-daemon available to build the image), and the majority of the shadcn
-migration (only `badges.tsx` and one representative form were actually
-migrated — see `docs/product-decisions.md`'s status section for the exact
-list of what still uses the pre-migration styling). Both are disclosed
-directly rather than implied to be complete.
+The framework versions were subsequently upgraded from:
+
+Next.js 14 → 16
+Tailwind CSS 3 → 4
+Prisma 5 → 7
+
+This was a different form of AI-assisted development. The emphasis was less on generating implementation code and more on verifying assumptions before making changes.
+
+Three issues were identified through actually executing the project rather than relying solely on documentation or generated suggestions.
+
+1. prisma@latest resolved to a release candidate
+
+Using "prisma": "latest" resulted in a Prisma 8 release-candidate package being installed, while @prisma/client@latest resolved to stable 7.x.
+
+This was verified with package inspection and npm audit / npm ls, rather than assuming that latest meant the same stable release across the Prisma packages.
+
+The dependency was subsequently pinned to Prisma 7 (^7.10.0) so that the CLI and client remained on the same stable major version.
+
+2. Prisma's Decimal export had moved
+
+An existing import from:
+
+@prisma/client/runtime/library
+
+no longer matched the Prisma 7 package structure.
+
+Rather than assuming the new location from generated advice, the candidate import was tested directly in Node. The working Prisma 7 export was confirmed under:
+
+@prisma/client/runtime/client
+
+This mattered because the incorrect import would otherwise have remained hidden until runtime.
+
+3. Tailwind v4 changed @apply behaviour
+
+The existing stylesheet used custom component classes through @apply, including patterns such as:
+
+.btn-primary { @apply btn ... }
+
+This compiled under the previous Tailwind version but failed under Tailwind v4 with an unknown utility error.
+
+The issue was reproduced by compiling the project's actual stylesheet with the Tailwind CLI. The affected styles were then rewritten rather than relying on migration articles that did not cover this particular pattern.
+
+CLI limitations
+
+Some migration operations could not be fully executed in the development environment.
+
+prisma generate and prisma db push require Prisma's schema-engine binary, which could not be downloaded because of the environment's network restrictions.
+
+To continue validating the rest of the codebase, a temporary, clearly labelled Prisma client type stub was used for typechecking. The stub was deleted before the project was handed over and is not part of the application.
+
+Consequently, the migration was structurally and typechecked against the project, but the affected Prisma CLI operations were not fully exercised against a live database in that environment.
+
+# Adding Zod, tests, Docker, and shadcn/ui
+
+A later pass added:
+
+- Zod validation
+- Unit tests
+- Docker configuration
+- shadcn/ui-inspired components
+
+Again, the goal was to verify assumptions rather than blindly follow generated output.
+
+# Checking dependency versions before installing
+
+The earlier Prisma latest issue made it important to check the package metadata before adding another fast-moving dependency.
+
+Before adding Zod, the npm distribution tags were checked to confirm that latest pointed to a stable release. The project was then installed against the verified stable Zod release.
+
+# Reproducing stable shadcn/ui patterns
+
+The shadcn CLI could not retrieve component source from its registry in the development environment. This was confirmed by actually attempting the CLI operation rather than assuming the network request would fail.
+
+Rather than making the UI migration dependent on that unavailable registry, the required components were hand-authored using the established shadcn conventions:
+
+cva-based variants for Button and Badge
+lightweight wrappers around native elements for Input and Card
+Radix primitive wrappers for components such as Label and Select
+
+The resulting implementation was then validated through the project's CSS compilation and TypeScript checks.
+
+This was considered an appropriate use of existing knowledge because the task was reproducing stable component structure, not determining a version-sensitive API or package release.
+
+# Remaining verification
+
+The Docker image could not be built in the development environment because a Docker daemon was unavailable.
+
+The shadcn migration was also intentionally partial rather than being represented as complete. The migrated components and the remaining pre-migration styling are documented in docs/product-decisions.md.
+
+These limitations are recorded here so that the documentation distinguishes between:
+
+functionality that was implemented and tested,
+functionality that was implemented but could not be fully exercised in the available environment, and
+functionality that was intentionally left outside the assessment scope.
+
+# Overall approach
+
+The main lesson from the AI-assisted development process was that AI output was treated as input to engineering judgment, not as the engineering judgment itself.
+
+AI was useful for:
+
+- identifying potential race conditions and edge cases,
+- suggesting alternative architectures,
+- accelerating implementation,
+- reviewing existing decisions,
+- generating test cases,
+- and helping investigate framework migrations.
+
+The final decisions were made by checking those suggestions against the assessment requirements, the existing code, actual compiler/runtime behavior, and the complexity they introduced.
+
+That distinction was particularly important when the AI's initial assumptions were wrong or incomplete. Running the real project, reading compiler/runtime errors, and testing the proposed solution provided the final verification layer.

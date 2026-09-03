@@ -116,7 +116,7 @@ export const createAssessmentSchema = z.object({
 });
 
 // --- Grades -------------------------------------------------------------
-// `published` is a real JSON boolean from the client, never a string — using z.coerce.boolean() here would be a classic footgun, since JS's Boolean("false") is true. Keep it a strict boolean.
+// `published` is a real JSON boolean from the client, never a string - using z.coerce.boolean() here would be a classic footgun, since JS's Boolean("false") is true. Keep it a strict boolean.
 
 export const gradeSchema = z.object({
   score: z.coerce

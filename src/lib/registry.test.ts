@@ -39,7 +39,7 @@ describe('computeBalance', () => {
   });
 
   it('rounds to two decimal places to avoid floating point noise', () => {
-    // 0.1 + 0.2 !== 0.3 in raw floating point — this is exactly the kind of bug computeBalance's rounding step exists to prevent.
+    // 0.1 + 0.2 !== 0.3 in raw floating point - this is exactly the kind of bug computeBalance's rounding step exists to prevent.
     expect(computeBalance(1, [{ amount: 0.1 }, { amount: 0.2 }])).toBe(0.7);
   });
 });
@@ -61,7 +61,7 @@ describe('isOverdue', () => {
     expect(isOverdue(future, 100, now)).toBe(false);
   });
 
-  it('treats a negative balance as not overdue (defensive — should not occur given overpayment rejection)', () => {
+  it('treats a negative balance as not overdue (defensive - should not occur given overpayment rejection)', () => {
     expect(isOverdue(past, -50, now)).toBe(false);
   });
 });
