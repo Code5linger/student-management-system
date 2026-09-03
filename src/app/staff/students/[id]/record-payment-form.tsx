@@ -3,10 +3,30 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export function RecordPaymentForm({ studentId }: { studentId: string }) {
+function generateReferenceNumber() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  let suffix = '';
+
+  for (let i = 0; i < 4; i++) {
+    suffix += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  return `PAY-UK-${suffix}`;
+}
+
+export function RecordPaymentForm({
+  studentId,
+  outstandingBalance,
+}: {
+  studentId: string;
+  outstandingBalance: number;
+}) {
   const router = useRouter();
   const [amount, setAmount] = useState('');
-  const [referenceNumber, setReferenceNumber] = useState('');
+  const [referenceNumber, setReferenceNumber] = useState(
+    generateReferenceNumber(),
+  );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,7 +55,7 @@ export function RecordPaymentForm({ studentId }: { studentId: string }) {
       }
 
       setAmount('');
-      setReferenceNumber('');
+      setReferenceNumber(generateReferenceNumber());
 
       router.refresh();
     } catch {
@@ -65,6 +85,7 @@ export function RecordPaymentForm({ studentId }: { studentId: string }) {
           className="input"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
+          placeholder={outstandingBalance.toFixed(2)}
         />
       </div>
       <div>
@@ -74,10 +95,9 @@ export function RecordPaymentForm({ studentId }: { studentId: string }) {
         <input
           id="reference"
           required
+          readOnly
           className="input"
           value={referenceNumber}
-          onChange={(e) => setReferenceNumber(e.target.value)}
-          placeholder="e.g. PAY-UK-00123"
         />
       </div>
       <button className="btn-primary w-full" disabled={submitting}>

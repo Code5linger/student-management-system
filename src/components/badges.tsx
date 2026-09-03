@@ -9,7 +9,10 @@ const STATUS_VARIANTS: Record<string, BadgeProps['variant']> = {
 
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>
+    <Badge
+      className="min-w-24 justify-center"
+      variant={STATUS_VARIANTS[status] ?? 'secondary'}
+    >
       {status.charAt(0) + status.slice(1).toLowerCase()}
     </Badge>
   );
@@ -28,7 +31,10 @@ export function ClassificationBadge({
   classification: string;
 }) {
   return (
-    <Badge variant={CLASSIFICATION_VARIANTS[classification] ?? 'secondary'}>
+    <Badge
+      className="min-w-24 justify-center"
+      variant={CLASSIFICATION_VARIANTS[classification] ?? 'secondary'}
+    >
       {classification}
     </Badge>
   );

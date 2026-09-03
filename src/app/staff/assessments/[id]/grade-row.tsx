@@ -18,6 +18,7 @@ export function GradeRow({
   existingGrade: Grade;
 }) {
   const router = useRouter();
+
   const [score, setScore] = useState(existingGrade?.score?.toString() ?? '');
   const [published, setPublished] = useState(
     Boolean(existingGrade?.publishedAt),

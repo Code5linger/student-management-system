@@ -90,7 +90,10 @@ export default async function StudentDetailPage({
 
         <section className="card">
           <h2 className="font-semibold mb-2">Record a payment</h2>
-          <RecordPaymentForm studentId={student.id} />
+          <RecordPaymentForm
+            studentId={student.id}
+            outstandingBalance={balance}
+          />
         </section>
       </div>
 

@@ -101,6 +101,9 @@ export async function POST(
     if (err instanceof Error && err.message.includes('Only PDF or DOCX')) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
-    return handleApiError(err, 'Could not save submission.');
+    return handleApiError(
+      err,
+      'Could not save submission. Max size 10 10MB and must be PDF or DOCX.',
+    );
   }
 }

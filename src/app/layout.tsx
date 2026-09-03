@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from 'next/font/google';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
 
 // Fonts
 const plexSerif = IBM_Plex_Serif({
@@ -40,7 +41,10 @@ export default function RootLayout({
       lang="en"
       className={`${plexSerif.variable} ${plexSans.variable} ${plexMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <Analytics />
+        {children}
+      </body>
     </html>
   );
 }
