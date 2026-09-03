@@ -29,6 +29,9 @@ cp .env.example .env
 
 ```
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/sms_registry"
+
+BLOB_STORE_ID="verclst_blob_store_id"
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_token"
 ```
 
 ### 4. Set up the database
@@ -55,44 +58,7 @@ transaction's concurrency behavior or the published-grade edit rule, since
 both need a real Postgres connection to exercise meaningfully - see
 `docs/product-decisions.md` for that gap spelled out.
 
-### Running with Docker (alternative to steps 1-5 above)
-
-```bash
-docker compose up --build
-# in another terminal, once it's up:
-docker compose exec app npx prisma db push
-docker compose exec app npm run db:seed
-```
-
-This has **not** been built/run in the environment that wrote it (no Docker
-daemon was available there) - see `docs/ai-usage.md` for exactly what was
-and wasn't verified. Treat the first `docker compose up` as a real test.
-
-> **Note on Prisma 7**: this project pins `prisma`/`@prisma/client` to `^7.10.0`, the current stable line - running `npm install prisma@latest` will actually pull `8.0.0-rc.x`, a beta "unified CLI" package with some known-vulnerable bundled tooling. Don't upgrade past 7.x here without checking Prisma 8's status first.
->
-> Also: Prisma 7 requires a **driver adapter** (`@prisma/adapter-pg`, already included) rather than its old built-in query engine, and the CLI no longer auto-loads `.env` - both are already wired up in `src/lib/prisma.ts` and `prisma.config.ts`, nothing extra to configure.
-
-### 5. Run the app
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:3000`. There's no real authentication - the landing page lets you enter as **Staff** or pick a **Student** to view their record as.
-
-> **This project was recently migrated to Next.js 16 / Tailwind CSS 4 / Prisma ORM 7.** The migration was done carefully - every changed file was grepped for stale patterns, the whole codebase was typechecked, and both the Tailwind v4 build and the exact dependency tree were actually executed and inspected - but it has **not** been run end-to-end against a live database or in a browser yet. If `npm run dev` doesn't come up cleanly, that's the most likely place to look first; please report back what you see.
-
----
-
-## Environment variables
-
-| Variable       | Description                                                                                        |
-| -------------- | -------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL` | PostgreSQL connection string. Include `?sslmode=require` if your host (Neon/Supabase) requires it. |
-
-No other secrets are required - there's no third-party API, auth provider, or file storage service wired up (see design decisions below).
-
----
+** A docker container was set up for this project but was not shipped for the final submission. It can be find in the docker branch. 
 
 ## Design decisions worth knowing about
 
